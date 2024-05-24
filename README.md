@@ -1,1 +1,1 @@
-# The-accurate-metoerologist
+# The-accurate-meteorologist
