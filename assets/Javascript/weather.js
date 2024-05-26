@@ -1,7 +1,5 @@
 const apiKey = 'a50066172c7b6be104287c3098be0967';
 
-
-
 document.getElementById('search-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const query = document.getElementById('city-search').value;
@@ -13,17 +11,18 @@ document.getElementById('search-form').addEventListener('submit', function(event
 });
 
 function fetchCities(query) {
-    fetch(`https://api.openweathermap.org/data/2.5/find?q=${encodeURIComponent(query)}&type=like&sort=population&cnt=5&appid=${apiKey}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.cod === '200' && data.count > 0) {
-            displayCities(data.list);
-            addCityToHistory(query, data.list[0].id);
+    fetch(`https://api.openweathermap.org/data/2.5/find?q=${encodeURIComponent(query)}&type=like&sort=population&cnt=1&appid=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.cod === '200' && data.count > 0) {
+                const city = data.list[0];
+                addCityToHistory(city.name, city.id);
+                fetchForecast(city.id);
             } else {
-               clearCityList();
-               console.error('City not found');
-        }
-    })
+                clearCityList();
+                console.error('City not located');
+            }
+        })
         .catch(error => console.error('Error fetching city:', error));
 }
 
@@ -37,20 +36,20 @@ function displayCities(cities) {
         cityList.appendChild(cityItem);
     });
 }
+
 function clearCityList() {
     const cityList = document.getElementById('city-list');
-        cityList.innerHTML = '';
+    cityList.innerHTML = '';
 }
-
 
 function fetchForecast(cityId) {
     fetch(`https://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}&units=metric`)
-    .then(response => response.json())
-    .then(data => {
-      const dailyData = aggregateDailyForecasts(data.list);
-      displayForecast(dailyData);
-    })
-    .catch(error => console.error('Error fetching forecast:', error));
+        .then(response => response.json())
+        .then(data => {
+            const dailyData = aggregateDailyForecasts(data.list);
+            displayForecast(dailyData);
+        })
+        .catch(error => console.error('Error fetching forecast:', error));
 }
 
 function aggregateDailyForecasts(forecastList) {
@@ -58,12 +57,15 @@ function aggregateDailyForecasts(forecastList) {
 
     forecastList.forEach(entry => {
         const date = new Date(entry.dt * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
-        if(!dailyData[date]) {
+        if (!dailyData[date]) {
             dailyData[date] = {
                 date: date,
                 tempMin: entry.main.temp,
                 tempMax: entry.main.temp,
                 weather: entry.weather[0].description,
+                icon: entry.weather[0].icon,
+                windSpeed: entry.wind.speed,
+                humidity: entry.main.humidity,
                 count: 1
             };
         } else {
@@ -72,6 +74,7 @@ function aggregateDailyForecasts(forecastList) {
             dailyData[date].count += 1;
         }
     });
+
     return Object.values(dailyData).slice(0, 5);
 }
 
@@ -82,21 +85,26 @@ function displayForecast(forecastData) {
         const card = document.createElement('div');
         card.classList.add('forecast-card');
         card.innerHTML = `
-        <h3>${day.date}</h3>
-        <p>Weather: ${day.weather}</p>
-        <p>Temperature: ${day.tempMin.toFixed(1)}°C - ${day.tempMax.toFixed(1)}°C</p>
+            <h3>${day.date}</h3>
+            <p><img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.weather}"></p>
+            <p>Weather: ${day.weather}</p>
+            <p>Temperature: ${day.tempMin.toFixed(1)}°C - ${day.tempMax.toFixed(1)}°C</p>
+            <p>Wind Speed: ${day.windSpeed} m/s</p>
+            <p>Humidity: ${day.humidity}%</p>
         `;
         forecast.appendChild(card);
     });
 }
 
-
-
-
 function addCityToHistory(cityName, cityId) {
-    const cityList = document.getElementById('search-history');
+    const searchHistory = document.getElementById('search-history');
     const cityItem = document.createElement('li');
     cityItem.textContent = cityName;
     cityItem.addEventListener('click', () => fetchForecast(cityId));
-    cityList.appendChild(cityItem);
+    searchHistory.appendChild(cityItem);
 }
+
+// Example data for initial load
+addCityToHistory('Salt Lake City', 5780993);
+fetchForecast(5780993);
+
