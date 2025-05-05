@@ -1,3 +1,10 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
 
  header {
     display: flex;
@@ -19,7 +26,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    height: calc(100vh - 60px);
+    min-height: calc(100vh - 60px);
     background-color: #f0f0f0;
     border-radius: 5px;
     overflow-y: 5px;
@@ -64,10 +71,58 @@
     background-color: #f9f9f9;
 }
 
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-top-color: rgb(78, 147, 226);
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#clear-history {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#clear-history:hover {
+    background-color: #c0392b;
+}
+
 .forecast {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-items: center;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.forecast-card {
+    animation: fadeInUp 0.5s ease forwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .forecast-card {
@@ -82,6 +137,12 @@
     width: 100%;
 }
 
+.forecast-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 .forecast-card h3 {
     margin: 0;
     font-size: 1.2em;
@@ -90,4 +151,47 @@
 .forecast-card p {
     margin: 3px 0;
     font-size: 0.9em;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 15px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+footer a {
+    color: rgb(78, 147, 226);
+    text-decoration: none;
+}
+
+footer hr {
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        padding: 10px;
+    }
+
+    .left-panel,
+    .right-panel {
+        width: 100%;
+        border-right: none;
+        padding: 10px;
+    }
+
+    .forecast-card {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+        text-align: center;
+    }
 }

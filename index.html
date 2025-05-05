@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☔ True Weather ☔</title>
+    <title>☁️ True Weather | Your Accurate Forecast Buddy</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
@@ -17,15 +19,36 @@
                 <input type="text" id="city-search" placeholder="City Search...">
             </div>
             </form>
+
             <h3>Search History:</h3>
-            <ul class="city-list" id="search-history">
-            </ul>
+            <button id="clear-history" style="margin-bottom: 10px;">Clear History</button>
+            <ul class="city-list" id="search-history"></ul>
+
         </div>
+
+        <div id="loading-message" style="display: none; justify-content: center; margin-bottom: 10px;">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="error-message" style="display: none; color: red; font-weight: bold; text-align: center; margin-bottom: 10px;">
+            ⚠️ City not found. Please try again.
+        </div>
+
+
         <div class="right-panel">
-            <div class="forecast" id="forecast">  
+            <div class="forecast" id="forecast"> 
+                <div id="forecast-error" style="display: none; color: red; font-weight: bold; text-align: center; margin-top: 10px;">
+                    ⚠️ Forecast could not be loaded. Please try again later.
+                </div>
         </div>
     </div>
 </div>
 <script src="./assets/Javascript/weather.js"></script>
+<footer style="text-align: center; margin-top: 30px; padding: 15px; font-size: 0.9em; color: #555;">
+    <hr style="margin-bottom: 10px;">
+    <p>Built with 💻 by Patrick Castorena</p>
+    <p>Powered by <a href="https://openweathermap.org/" target="_blank"
+            style="color: rgb(78, 147, 226); text-decoration: none;">OpenWeatherMap API</a></p>
+</footer>
 </body>
 </html>

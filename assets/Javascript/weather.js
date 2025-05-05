@@ -10,21 +10,36 @@ document.getElementById('search-form').addEventListener('submit', function(event
     }
 });
 
-function fetchCities(query) {
-    fetch(`https://api.openweathermap.org/data/2.5/find?q=${encodeURIComponent(query)}&type=like&sort=population&cnt=1&appid=${apiKey}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.cod === '200' && data.count > 0) {
-                const city = data.list[0];
-                addCityToHistory(city.name, city.id);
-                fetchForecast(city.id);
-            } else {
-                clearCityList();
-                console.error('City not located');
-            }
-        })
-        .catch(error => console.error('Error fetching city:', error));
+
+async function fetchCities(query) {
+    const errorMsg = document.getElementById('error-message');
+    const loading = document.getElementById('loading-message');
+
+    errorMsg.style.display = 'none';
+    loading.style.display = 'block';
+
+    try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/find?q=${encodeURIComponent(query)}&type=like&sort=population&cnt=1&appid=${apiKey}`);
+        const data = await response.json();
+
+        if (data.cod === '200' && data.count > 0) {
+            const city = data.list[0];
+            addCityToHistory(city.name, city.id);
+            fetchForecast(city.id);
+        } else {
+            clearCityList();
+            errorMsg.style.display = 'block';
+            console.error('City not located');
+        }
+    } catch (error) {
+        console.error('Error fetching city:', error);
+        errorMsg.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+    }
 }
+
+
 
 function displayCities(cities) {
     const cityList = document.getElementById('city-list');
@@ -42,15 +57,33 @@ function clearCityList() {
     cityList.innerHTML = '';
 }
 
-function fetchForecast(cityId) {
-    fetch(`https://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}&units=metric`)
-        .then(response => response.json())
-        .then(data => {
-            const dailyData = aggregateDailyForecasts(data.list);
-            displayForecast(dailyData);
-        })
-        .catch(error => console.error('Error fetching forecast:', error));
+async function fetchForecast(cityId) {
+    const loading = document.getElementById('loading-message');
+    const errorMsg = document.getElementById('forecast-error');
+    loading.style.display = 'block';
+    errorMsg.style.display = 'none'; 
+
+    try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=${apiKey}&units=metric`);
+        const data = await response.json();
+
+        if (!data.list || data.list.length === 0) {
+            throw new Error('No forecast data returned');
+        }
+
+        const dailyData = aggregateDailyForecasts(data.list);
+        displayForecast(dailyData);
+    } catch (error) {
+        console.error('Error fetching forecast:', error);
+        errorMsg.style.display = 'block';
+        document.getElementById('forecast').innerHTML = '';
+    } finally {
+        loading.style.display = 'none';
+    }
 }
+
+
+
 
 function aggregateDailyForecasts(forecastList) {
     const dailyData = {};
@@ -97,14 +130,42 @@ function displayForecast(forecastData) {
 }
 
 function addCityToHistory(cityName, cityId) {
-    const searchHistory = document.getElementById('search-history');
-    const cityItem = document.createElement('li');
-    cityItem.textContent = cityName;
-    cityItem.addEventListener('click', () => fetchForecast(cityId));
-    searchHistory.appendChild(cityItem);
+    let history = JSON.parse(localStorage.getItem('weatherHistory')) || [];
+
+    // Avoid duplicates
+    if (!history.find(entry => entry.id === cityId)) {
+        history.push({ name: cityName, id: cityId });
+        localStorage.setItem('weatherHistory', JSON.stringify(history));
+        renderSearchHistory(history);
+    }
 }
+
+
+function renderSearchHistory(history) {
+    const searchHistory = document.getElementById('search-history');
+    searchHistory.innerHTML = '';
+    history.forEach(entry => {
+        const cityItem = document.createElement('li');
+        cityItem.textContent = entry.name;
+        cityItem.addEventListener('click', () => fetchForecast(entry.id));
+        searchHistory.appendChild(cityItem);
+    });
+}
+
+document.getElementById('clear-history').addEventListener('click', () => {
+    const searchHistory = document.getElementById('search-history');
+    searchHistory.innerHTML = '';
+    localStorage.removeItem('weatherHistory'); 
+});
+
 
 // Example data for initial load
 addCityToHistory('Salt Lake City', 5780993);
 fetchForecast(5780993);
+
+
+const savedHistory = JSON.parse(localStorage.getItem('weatherHistory'));
+if (savedHistory && savedHistory.length > 0) {
+    renderSearchHistory(savedHistory);
+}
 
